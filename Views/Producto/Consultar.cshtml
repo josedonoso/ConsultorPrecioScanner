@@ -59,7 +59,7 @@
 
         #reader video {
             width: 100% !important;
-            height: 140px !important;
+            height: 160px !important;
             object-fit: cover !important;
         }
 
@@ -167,20 +167,30 @@
 
         setTimeout(() => {
             bloqueado = false;
-        }, 1500);
+        }, 700);
     }
 
     const html5QrCode = new Html5Qrcode("reader");
 
-    html5QrCode.start(
-        { facingMode: "environment" },
-        {
-            fps: 30,
-            qrbox: { width: 180, height: 70 },
-            aspectRatio: 1.777
+html5QrCode.start(
+    {
+        facingMode: "environment"
+    },
+    {
+        fps: 60,
+        qrbox: { width: 240, height: 80 },
+        aspectRatio: 1.777,
+        disableFlip: true,
+        experimentalFeatures: {
+            useBarCodeDetectorIfSupported: true
         },
-        (decodedText) => {
-        buscarCodigo(decodedText);
+        videoConstraints: {
+            facingMode: "environment",
+             focusMode: "continuous"
         }
-    );
+    },
+    (decodedText) => {
+        buscarCodigo(decodedText);
+    }
+);
 </script>
