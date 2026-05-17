@@ -3,13 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
-//builder.WebHost.UseUrls("http://localhost:5228", "http://0.0.0.0:5228");
+builder.WebHost.UseUrls("http://localhost:5228", "http://0.0.0.0:5228");
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("ConexionSQL")));
+builder.Services.AddHttpClient<ConsultorPrecio.Services.UPCService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

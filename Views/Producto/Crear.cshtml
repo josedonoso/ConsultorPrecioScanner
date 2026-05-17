@@ -1,86 +1,5 @@
 ﻿@model ConsultorPrecio.Models.Producto
-
-<style>
-    body {
-        background-color: #121212;
-        color: white;
-        font-family: Arial, sans-serif;
-    }
-
-    .contenedor {
-        max-width: 400px;
-        margin: auto;
-        margin-top: 30px;
-        background: #1e1e1e;
-        padding: 25px;
-        border-radius: 15px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.4);
-        text-align: center;
-    }
-
-    .titulo {
-        font-size: 30px;
-        font-weight: bold;
-        margin-bottom: 25px;
-        color: white;
-    }
-
-    .input-producto,
-    #codigoBarra {
-        width: 100%;
-        padding: 14px;
-        margin-bottom: 15px;
-        border-radius: 10px;
-        border: 1px solid #333;
-        font-size: 18px;
-        text-align: center;
-        background-color: #2b2b2b;
-        color: white;
-    }
-
-    .boton-guardar {
-        width: 100%;
-        padding: 15px;
-        border: none;
-        border-radius: 10px;
-        background-color: #198754;
-        color: white;
-        font-size: 20px;
-        font-weight: bold;
-    }
-
-    #reader {
-        width: 280px;
-        margin: auto;
-        overflow: hidden;
-        border-radius: 15px;
-        background: #1e1e1e;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.4);
-    }
-
-        #reader video {
-            width: 100% !important;
-            height: 140px !important;
-            object-fit: cover !important;
-        }
-
-    #resultado {
-        margin-top: 20px;
-        background: #1e1e1e;
-        padding: 20px;
-        border-radius: 15px;
-    }
-
-        #resultado h2 {
-            color: white;
-        }
-
-        #resultado h1 {
-            color: #32d74b;
-            font-size: 50px;
-        }
-</style>
-
+<link rel="stylesheet" href="~/css/crear.css" />
 <div class="contenedor">
 
     <div class="titulo">
@@ -96,16 +15,19 @@
 
         <input type="text"
                asp-for="CodigoBarra"
+               id="codigoBarra"
                class="input-producto"
                placeholder="Código de Barra" />
 
         <input type="text"
                asp-for="Nombre"
+               id="nombre"
                class="input-producto"
                placeholder="Nombre Producto" />
 
         <input type="number"
                asp-for="Precio"
+               id="precio"
                class="input-producto"
                placeholder="Precio" />
 
@@ -117,57 +39,4 @@
 
 </div>
 <script src="https://unpkg.com/html5-qrcode"></script>
-
-<script src="https://unpkg.com/html5-qrcode"></script>
-
-<script>
-    const html5QrCode = new Html5Qrcode("reader");
-
-    let ultimoCodigo = "";
-
-    html5QrCode.start(
-    { facingMode: "environment" },
-    {
-    fps: 20,
-    qrbox: { width: 180, height: 70 },
-    aspectRatio: 1.777
-    },
-
-    async (decodedText) => {
-
-    const codigo = decodedText.replace(/\s/g, "").trim();
-
-    if (codigo === ultimoCodigo) return;
-
-    ultimoCodigo = codigo;
-
-    document.getElementById("CodigoBarra").value = codigo;
-
-    const respuesta = await fetch(
-    "/Producto/BuscarProducto?codigoBarra=" + codigo
-    );
-
-    const producto = await respuesta.json();
-
-    if (producto) {
-
-    document.getElementById("Nombre").value =
-    producto.nombre;
-
-    document.getElementById("Precio").value =
-    producto.precio;
-
-    document.getElementById("estadoProducto").innerHTML =
-    "<span style='color:orange;font-weight:bold;'>Producto existente - Editando</span>";
-
-    } else {
-
-    document.getElementById("Nombre").value = "";
-    document.getElementById("Precio").value = "";
-
-    document.getElementById("estadoProducto").innerHTML =
-    "<span style='color:green;font-weight:bold;'>Producto nuevo</span>";
-    }
-    }
-    );
-</script>
+<script src="~/js/crear.js"></script>

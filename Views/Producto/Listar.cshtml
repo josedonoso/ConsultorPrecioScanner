@@ -1,0 +1,167 @@
+@model IEnumerable<ConsultorPrecio.Models.Producto>
+@{
+    ViewData["Title"] = "Lista de productos";
+}
+<h2>Lista de productos</h2>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Codigo Barra</th>
+            
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Datos API</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var p in Model) {
+    <tr>
+        
+        <td>@p.CodigoBarra</td>
+        <td>
+            <span class="nombre-text" data-codigo="@p.CodigoBarra">@p.Nombre</span>
+        </td>
+        <td>
+            <span class="precio-text" data-codigo="@p.CodigoBarra">@p.Precio</span>
+        </td>
+        <td>
+            
+            <button type="button" class="btn-editar btn-primary" data-codigo="@p.CodigoBarra">Editar</button>
+            <form method="post" asp-action="Editar" style="display:inline;" class="form-guardar" data-codigo="@p.CodigoBarra">
+                <input type="hidden" name="CodigoBarra" value="@p.CodigoBarra" />
+                <input type="hidden" name="Nombre" class="hidden-nombre" value="@p.Nombre" />
+                <input type="hidden" name="Precio" class="hidden-precio" value="@p.Precio" />
+                        <button type="submit" class="btn btn-primary" style="display:none;">Guardar</button>
+            </form>
+        </td>
+    </tr>
+}
+    </tbody>
+</table>
+
+<script>
+    document.addEventListener('click', function (e) {
+        if (!e.target || !e.target.classList.contains('btn-editar')) return;
+
+        var btn = e.target;
+        var codigo = btn.getAttribute('data-codigo');
+        var nombreSpan = document.querySelector('.nombre-text[data-codigo="' + codigo + '"]');
+        var precioSpan = document.querySelector('.precio-text[data-codigo="' + codigo + '"]');
+        var form = document.querySelector('.form-guardar[data-codigo="' + codigo + '"]');
+        var hiddenNombre = form.querySelector('.hidden-nombre');
+        var hiddenPrecio = form.querySelector('.hidden-precio');
+
+        // Si el botón está en estado 'Editar': crear inputs
+        if (btn.textContent.trim() === 'Editar') {
+            // crear inputs
+            var ni = document.createElement('input');
+            ni.type = 'text';
+            ni.value = nombreSpan.textContent.trim();
+            ni.className = 'nombre-input';
+            ni.setAttribute('data-codigo', codigo);
+
+            var pi = document.createElement('input');
+            pi.type = 'number';
+            pi.step = 'any';
+            pi.value = precioSpan.textContent.trim();
+            pi.className = 'precio-input';
+            pi.setAttribute('data-codigo', codigo);
+
+            // ocultar spans y mostrar inputs
+            nombreSpan.style.display = 'none';
+            precioSpan.style.display = 'none';
+            nombreSpan.parentNode.appendChild(ni);
+            precioSpan.parentNode.appendChild(pi);
+
+            btn.textContent = 'Guardar';
+
+            // guardar handler una sola vez al hacer click en el mismo botón (ahora 'Guardar')
+            var saveHandler = function (ev) {
+                ev.preventDefault();
+                // actualizar hidden
+                hiddenNombre.value = ni.value;
+                hiddenPrecio.value = pi.value;
+
+                fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: new URLSearchParams(new FormData(form))
+                }).then(function (r) { return r.json(); })
+                .then(function (j) {
+                    if (j && j.success) {
+                        // actualizar spans (usar valores del servidor si vienen)
+                        if (j.nombre !== undefined) {
+                            nombreSpan.textContent = j.nombre;
+                        } else {
+                            nombreSpan.textContent = hiddenNombre.value;
+                        }
+                        if (j.precio !== undefined) {
+                            precioSpan.textContent = j.precio;
+                        } else {
+                            precioSpan.textContent = hiddenPrecio.value;
+                        }
+
+                        // limpiar inputs y volver a mostrar spans
+                        ni.remove();
+                        pi.remove();
+                        nombreSpan.style.display = '';
+                        precioSpan.style.display = '';
+                        btn.textContent = 'Editar';
+                    } else {
+                        alert('Error al guardar');
+                    }
+                }).catch(function () { alert('Error al guardar'); });
+
+                // remover este handler después de usarlo
+                btn.removeEventListener('click', saveHandler);
+            };
+
+            btn.addEventListener('click', saveHandler);
+        }
+        // Si el botón está en estado 'Guardar' (la acción real será manejada por saveHandler)
+    });
+</script>
+
+<script>
+    document.addEventListener('click', function (e) {
+        if (!e.target || !e.target.classList.contains('btn-api')) return;
+
+        var btn = e.target;
+        var codigo = btn.getAttribute('data-codigo');
+        var row = btn.closest('tr');
+
+        // If next row is our container, toggle
+        var next = row.nextElementSibling;
+        if (next && next.classList.contains('api-row') && next.getAttribute('data-codigo') === codigo) {
+            next.remove();
+            return;
+        }
+
+        fetch('/Producto/ObtenerApi?codigoBarra=' + encodeURIComponent(codigo))
+            .then(r => r.text())
+            .then(txt => {
+                // Insert a new row after current with formatted JSON
+                var tr = document.createElement('tr');
+                tr.className = 'api-row';
+                tr.setAttribute('data-codigo', codigo);
+                var td = document.createElement('td');
+                td.colSpan = 6; // span across table
+                var pre = document.createElement('pre');
+                try {
+                    var obj = JSON.parse(txt);
+                    pre.textContent = JSON.stringify(obj, null, 2);
+                } catch {
+                    pre.textContent = txt;
+                }
+                td.appendChild(pre);
+                tr.appendChild(td);
+                row.parentNode.insertBefore(tr, row.nextSibling);
+            });
+    });
+</script>
