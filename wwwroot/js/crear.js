@@ -39,8 +39,25 @@ html5QrCode.start(
         facingMode: "environment"
     },
     {
-        fps: 20,
-        qrbox: { width: 320, height: 90 }
+        fps: 30,
+        qrbox: { 
+            width: 300, 
+            height: 90 
+        },
+        aspectRatio: 1.777,
+        disableFlip: true,
+
+        experimentalFeatures: {
+            useBarCodeDetectorIfSupported: true
+        },
+
+        formatsToSupport: [
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+            Html5QrcodeSupportedFormats.CODE_128
+        ]
     },
 
     async (decodedText) => {
@@ -58,8 +75,12 @@ html5QrCode.start(
 
         await autocompletarProducto(codigo);
 
+        setTimeout(() => {
+            ultimoCodigo = "";
+        }, 500);
+
     },
-    (error) => { }
+    () => { }
 );
 
 document.addEventListener(
